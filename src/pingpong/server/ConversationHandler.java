@@ -1,9 +1,6 @@
 package pingpong.server;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
 
 public class ConversationHandler {
@@ -16,8 +13,6 @@ public class ConversationHandler {
     }
 
     public void start() {
-
-        System.out.println("Server is ready to talk with client " + clientId);
 
         new Thread(new Runnable() {
             @Override
@@ -36,27 +31,31 @@ public class ConversationHandler {
 
     // Обрабатываем сообщения от клиента
     private void receive() {
-        try (DataInputStream in = new DataInputStream(client.getInputStream())) {
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()))) {
 
             while (true) {
-                String str = in.readUTF();
+                String str = br.readLine();
                 System.out.println(str);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // Передаем сообщения клиенту
     private void transmit() {
-        try (DataOutputStream out = new DataOutputStream(client.getOutputStream());
+        try (PrintStream out = new PrintStream(client.getOutputStream());
              BufferedReader console = new BufferedReader(new InputStreamReader(System.in))) {
 
-            out.writeUTF("Server is ready to talk with client " + clientId);
+            out.println("Server is ready to talk with client " + clientId);
 
-            while(true) {
+            while (true) {
                 String message = console.readLine();
-                out.writeUTF(message);
+                out.println(message);
             }
-        }
-        catch (Exception e) {}
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+}
