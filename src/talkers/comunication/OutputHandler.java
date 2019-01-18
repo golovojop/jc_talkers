@@ -11,19 +11,25 @@ public class OutputHandler extends Thread {
     public OutputHandler(BufferedWriter output, Manager manager) {
         this.manager = manager;
         this.output = output;
+        // Для автоматического закрытия потока, если он остался один
+        setDaemon(true);
     }
 
     @Override
     public void run() {
         try {
-            while(manager.isActive()) {
-                String message = manager.pop();
-                output.write(message + System.lineSeparator());
-                output.flush();
+            while(true) {
+                String message = manager.extract();
+
+                if (message != null) {
+                    output.write(message + System.lineSeparator());
+                    output.flush();
+                } else break;
             }
-            System.out.println(this.getClass().getSimpleName() + "stopped");
+
+            System.out.println(this.getClass().getSimpleName() + " stopped");
         } catch (Exception e) {
-            System.out.println(this.getClass().getSimpleName() + "interrupted");
+            System.out.println(this.getClass().getSimpleName() + " interrupted");
         }
     }
 }

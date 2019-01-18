@@ -1,6 +1,5 @@
 package talkers.server;
 
-import pingpong.server.ConversationHandler;
 import talkers.comunication.InputHandler;
 import talkers.comunication.OutputHandler;
 import talkers.iomanager.Manager;
@@ -14,9 +13,9 @@ public class ServerBob {
     private int port;
 
     public ServerBob(boolean active, int port) {
-        this.manager = new Manager(true);
         this.port = port;
-        this.manager.push("Server ready" + System.lineSeparator());
+        this.manager = new Manager(true);
+        this.manager.insert("Server ready" + System.lineSeparator());
     }
 
     public void start() {
@@ -25,6 +24,10 @@ public class ServerBob {
         try {
             server = new ServerSocket(port);
             Socket client = server.accept();
+
+            // Приложение расчитано на работу с одним клиентом.
+            // Поэтому решил здесь закрыть серверный сокет.
+            server.close();
 
             BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
             BufferedWriter output = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
@@ -35,29 +38,26 @@ public class ServerBob {
             ih.start();
             oh.start();
 
+            // Чтение из консоли в основном потоке
             BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
             String message;
 
-            while ((message = console.readLine()) != null && manager.isActive()) {
+            System.out.println("Connection received. Type \"\\stop\" to terminate");
+            while ((message = console.readLine()) != null) {
 
                 if(message.matches("^\\\\stop.*")){
-                    manager.setActive(false);
-                    throw new Exception("Server stoped");
+                    manager.stopSignal();
+                    throw new Exception("Server was stoped");
                 }
                 else {
-                    manager.push(message);
+                    manager.insert(message);
                 }
             }
         }
         catch (Exception e) { System.out.println(e.getMessage());}
-        finally {
-            try {
-                server.close();
-            } catch (Exception e){e.printStackTrace();}
-        }
     }
 
-    // Отклонить коннект
+    // Отклонить коннект (не используется)
     private void rejectConnection(Socket socket){
         BufferedWriter output = null;
 

@@ -18,16 +18,17 @@ public class Manager {
     }
 
     // Поместить в очередь
-    public synchronized void push(String message) {
-        queue.add(message);
+    public synchronized boolean insert(String message) {
+        if(active) queue.add(message);
         notify();
+        return active;
     }
 
     // Поучить из очереди
-    public synchronized String pop() {
+    public synchronized String extract() {
         String message;
 
-        while ((message = queue.poll()) == null) {
+        while ((message = queue.poll()) == null & active) {
             try {
                 wait();
             } catch (Exception e) {e.printStackTrace();}
@@ -36,11 +37,8 @@ public class Manager {
         return message;
     }
 
-    public synchronized boolean isActive() {
-        return active;
-    }
-
-    public synchronized void setActive(boolean active) {
-        this.active = active;
+    public synchronized void stopSignal() {
+        this.active = false;
+        notifyAll();
     }
 }

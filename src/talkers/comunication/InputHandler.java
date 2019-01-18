@@ -11,23 +11,27 @@ public class InputHandler extends Thread {
     public InputHandler(BufferedReader input, Manager manager) {
         this.manager = manager;
         this.input = input;
+        // Для автоматического закрытия потока, если он остался один
+        setDaemon(true);
     }
 
     @Override
     public void run() {
         try {
             String data;
-            while ((data = input.readLine()) != null && manager.isActive()) {
+            while ((data = input.readLine()) != null) {
                 System.out.println(data);
             }
-            System.out.println(this.getClass().getSimpleName() + "stopped");
+
+            System.out.println(this.getClass().getSimpleName() + " stopped");
+            manager.stopSignal();
         } catch (Exception e) {
-            System.out.println(this.getClass().getSimpleName() + "interrupted");
+            System.out.println(this.getClass().getSimpleName() + " interrupted");
         }
     }
 
     // Это если потребуется отправлять эхо-ответы
     private void echo(String message) {
-        manager.push("echo: " + message + System.lineSeparator());
+        manager.insert("echo: " + message + System.lineSeparator());
     }
 }
