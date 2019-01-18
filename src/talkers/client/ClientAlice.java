@@ -9,6 +9,9 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+
 import java.net.Socket;
 
 public class ClientAlice {
@@ -26,13 +29,16 @@ public class ClientAlice {
 
     public void start(){
 
+        DataInputStream input = null;
+        DataOutputStream output = null;
+
         try {
 
             socket = new Socket(host, port);
             System.out.println("Client connected to " + host + ":" + port);
 
-            BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            BufferedWriter output = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            input = new DataInputStream(socket.getInputStream());
+            output = new DataOutputStream(socket.getOutputStream());
 
             InputHandler ih = new InputHandler(input, manager);
             OutputHandler oh = new OutputHandler(output, manager);
@@ -48,24 +54,25 @@ public class ClientAlice {
 
                 if(message.matches("^\\\\stop.*")){
                     manager.stopSignal();
-                    throw new Exception("Server was stoped");
+                    throw new Exception("Client was stoped");
                 }
                 else {
                     manager.insert(message);
                 }
             }
 
-
-        } catch (Exception e) {e.printStackTrace();}
+        } catch (Exception e) {System.out.println(e.getMessage());}
         finally {
-
+            try {
+                if(input != null) input.close();
+            } catch (Exception e) {e.printStackTrace();}
+            try {
+                if(output != null) output.close();
+            } catch (Exception e) {e.printStackTrace();}
+            try {
+                if(socket != null) socket.close();
+            } catch (Exception e) {e.printStackTrace();}
         }
-
-
-
-
     }
-
-
 
 }

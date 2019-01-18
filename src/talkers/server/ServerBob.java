@@ -1,7 +1,15 @@
+/**
+ * http://journals.ecs.soton.ac.uk/java/tutorial/networking/sockets/readingWriting.html
+ */
+
+
 package talkers.server;
 
 import talkers.comunication.InputHandler;
 import talkers.comunication.OutputHandler;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+
 import talkers.iomanager.Manager;
 
 import java.io.*;
@@ -32,8 +40,8 @@ public class ServerBob {
             // Поэтому решил здесь закрыть серверный сокет.
             server.close();
 
-            BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            BufferedWriter output = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
+            DataInputStream input = new DataInputStream(client.getInputStream());
+            DataOutputStream output = new DataOutputStream(client.getOutputStream());
 
             InputHandler ih = new InputHandler(input, manager);
             OutputHandler oh = new OutputHandler(output, manager);

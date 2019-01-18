@@ -3,12 +3,13 @@ package talkers.comunication;
 import talkers.iomanager.Manager;
 
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 
 public class OutputHandler extends Thread {
-    private BufferedWriter output;
+    private DataOutputStream output;
     private Manager manager;
 
-    public OutputHandler(BufferedWriter output, Manager manager) {
+    public OutputHandler(DataOutputStream output, Manager manager) {
         this.manager = manager;
         this.output = output;
         // Для автоматического закрытия потока, если он остался один
@@ -22,7 +23,7 @@ public class OutputHandler extends Thread {
                 String message = manager.extract();
 
                 if (message != null) {
-                    output.write(message + System.lineSeparator());
+                    output.writeUTF(message + System.lineSeparator());
                     output.flush();
                 } else break;
             }
