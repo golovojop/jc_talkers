@@ -9,11 +9,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerBob {
+
+    public static final int PORT = 65000;
+
     private Manager manager;
     private int port;
 
-    public ServerBob(boolean active, int port) {
-        this.port = port;
+    public ServerBob() {
+        this.port = PORT;
         this.manager = new Manager(true);
         this.manager.insert("Server ready" + System.lineSeparator());
     }
