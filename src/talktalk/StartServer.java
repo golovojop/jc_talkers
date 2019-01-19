@@ -1,50 +1,75 @@
 package talktalk;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 import static talktalk.Share.*;
 
 public class StartServer {
+
     public static void main(String[] srgs) {
 
         BufferedReader console = new BufferedReader(new InputStreamReader(System.in));
         DataOutputStream os = null;
         DataInputStream is = null;
+        InputHandler ih = null;
 
         ServerSocket server = null;
         Socket client = null;
+        boolean active = true;
 
-        try {
-            server = new ServerSocket(PORT);
-            System.out.println("Server listens on port " + PORT);
+        while(active){
 
+            String message;
 
-            client = server.accept();
-            System.out.println("Client connected. Type \"\\stop\" to terminate");
+            try {
+                server = new ServerSocket(PORT);
+                System.out.println("\n *** Server listens on port " + PORT + " ***" + System.lineSeparator());
 
-            is = new DataInputStream(client.getInputStream());
-            os = new DataOutputStream(client.getOutputStream());
+                client = server.accept();
+                System.out.println("Client connected.\nType \"\\reset\" to close connection and \"\\stop\" to exit");
 
-            InputHandler ih = new InputHandler(is);
-            ih.start();
+                // Закрываю серверный сокет, потому что сервер
+                // расчитан на одного клиента (???)
+                server.close();
 
-            String data;
+                is = new DataInputStream(client.getInputStream());
+                os = new DataOutputStream(client.getOutputStream());
 
-            while ((data = console.readLine()) != null) {
+                ih = new InputHandler(is, Mode.SERVER, active);
+                ih.start();
 
-                if(data.matches(CMD_STOP)){
-                    throw new Exception("Server stopped");
+                while ((message = console.readLine()) != null) {
+
+                    if(message.matches(CMD_STOP)){
+                        throw new CommandToStopException();
+                    }
+                    else if (message.matches(CMD_RESET)){
+                        throw new HostDisconnectException();
+                    } else {
+                        os.writeUTF(message);
+                        os.flush();
+                    }
                 }
-                else {
-                    os.writeUTF(data);
+            } catch (CommandToStopException cse) {
+                message = "Server stopped";
+                System.out.println(message);
+                ih.setActive(active = false);
+                try {
+                    os.writeUTF(message);
                     os.flush();
-                }
+                } catch (IOException e){e.printStackTrace();}
+            } catch (HostDisconnectException hde) {
+                ih.setActive(false);
+            } catch (NullPointerException npe) {
+                active = false;
             }
-        } catch (Exception e) {System.out.println(e.getMessage());}
+            catch (Exception e) {
+                //e.printStackTrace();
+            } finally {
+                CloseResources(is, os, client);
+            }
+        }
     }
 }
